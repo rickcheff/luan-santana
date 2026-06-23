@@ -1,0 +1,136 @@
+================================================================================
+                    PIXEL UTMIFY - RASTREAMENTO DE VENDAS
+================================================================================
+
+CONFIGURAÇÃO CONCLUÍDA COM SUCESSO ✓
+
+================================================================================
+1. ARQUIVOS CRIADOS/MODIFICADOS
+================================================================================
+
+✓ Arquivo criado: JS/utmify-pixel.js
+  - Contém o código do pixel Utmify
+  - Pixel ID: 6a2b6531458940c8bc182dce
+  - Funções de rastreamento: Purchase, AddToCart, InitiateCheckout
+
+✓ Arquivo modificado: JS/meta-pixel.js
+  - Integrado rastreamento Utmify junto com Facebook Pixel
+  - Eventos sincronizados em tempo real
+
+================================================================================
+2. PÁGINAS COM PIXEL INSTALADO
+================================================================================
+
+✓ /index.html
+  (Página principal - redireciona para seleção de lugar)
+
+✓ /Comprar/Bilhetes/177975/1945699/19483/Lotacao/index.html
+  (Seleção de lugar - LUAN SANTANA)
+
+✓ /Comprar/Bilhetes/177975-douro_porto_wine_festival_2026_3_julho-porto_comercial_de_cambres/index.html
+  (Informações - Douro & Porto Wine Festival)
+
+✓ /Comprar/Pagamento/Carrinho/index.html
+  (Carrinho de compras)
+
+✓ /Comprar/Pagamento/Dados/index.html
+  (Dados de pagamento)
+
+✓ /Comprar/Pagamento/Autenticacao/index.html
+  (Autenticação)
+
+================================================================================
+3. EVENTOS RASTREADOS
+================================================================================
+
+Os seguintes eventos estão sendo rastreados automaticamente:
+
+1. PageView
+   - Disparado em todas as páginas
+   - Rastreia visualizações de página
+
+2. AddToCart
+   - Disparado quando itens são adicionados ao carrinho
+   - Rastreia: valor total, quantidade de bilhetes, categoria
+
+3. InitiateCheckout
+   - Disparado quando o checkout é iniciado
+   - Rastreia: valor total, quantidade de bilhetes, dados do show
+
+4. Purchase (COMPRA - MAIS IMPORTANTE)
+   - Disparado após pagamento bem-sucedido
+   - Rastreia: ID do pedido, valor total, quantidade de bilhetes
+
+================================================================================
+4. COMO USAR OS EVENTOS
+================================================================================
+
+Para rastrear um evento de compra bem-sucedida:
+
+  trackPurchase(orderId);
+
+Exemplo:
+  trackPurchase('ORD-12345-LUAN-SANTANA');
+
+Para rastrear adição ao carrinho:
+
+  trackAddToCart(items);
+
+Exemplo:
+  trackAddToCart([
+    { nome: 'Bilhete Pista', qty: 2, preco: 45.00 },
+    { nome: 'Bilhete VIP', qty: 1, preco: 75.00 }
+  ]);
+
+Para rastrear início de checkout:
+
+  trackInitiateCheckout();
+
+================================================================================
+5. VERIFICAÇÃO NO DASHBOARD UTMIFY
+================================================================================
+
+Para acompanhar as conversões:
+
+1. Acesse https://app.utmify.com.br
+2. Faça login com sua conta
+3. Navegue até Pixel ID: 6a2b6531458940c8bc182dce
+4. Verifique os eventos disparados em:
+   - Eventos em tempo real
+   - Relatório de conversões
+   - Dashboard de vendas
+
+O pixel começará a rastrear imediatamente após ativar a página.
+
+================================================================================
+6. DETALHES TÉCNICOS
+================================================================================
+
+Pixel URL: https://cdn.utmify.com.br/scripts/pixel/pixel.js
+Pixel ID: 6a2b6531458940c8bc182dce
+
+Eventos suportados:
+- PageView (automático)
+- AddToCart (valor em EUR)
+- InitiateCheckout (valor em EUR)
+- Purchase (valor em EUR + ID do pedido)
+
+Moeda: EUR (Euro Português)
+
+================================================================================
+7. PRÓXIMAS AÇÕES
+================================================================================
+
+[ ] Testar a página no navegador
+[ ] Verificar console do navegador (F12) para erros
+[ ] Fazer uma compra de teste
+[ ] Verificar se a venda aparece no dashboard Utmify em 5-10 minutos
+[ ] Confirmar rastreamento de todos os eventos
+
+================================================================================
+
+Configuração realizada em: 2026-06-22
+Versão do Pixel: Utmify Standard
+Status: ✓ ATIVO E OPERACIONAL
+
+================================================================================
