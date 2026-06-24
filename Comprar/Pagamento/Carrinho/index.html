@@ -1618,20 +1618,17 @@ BOL.JS.Carrinho.Iniciar('timerCarrinhoMobile_Relogio','06/21/2026 19:35:41','06/
     if(updBilhetes){
       var html = '<div class="Sessao"><h3 class="destaque-compra">'+cart.show+'</h3>';
       html += '<p style="color:#555;font-size:13px;">'+cart.local+' &nbsp;·&nbsp; '+cart.data+'</p>';
-      html += '<div class="conteudo"><div class="row cabecalho hidden-xs"><span class="col-md-6 col-sm-6">Bilhete</span><span class="col-md-2 col-sm-2 text-right">Preço</span><span class="col-md-2 col-sm-2 text-right">Taxa</span><span class="col-md-2 col-sm-2 text-right">Total</span></div>';
+      html += '<div class="conteudo"><div class="row cabecalho hidden-xs"><span class="col-md-8 col-sm-8">Bilhete</span><span class="col-md-4 col-sm-4 text-right">Total</span></div>';
       cart.items.forEach(function(it){
         for(var i=0;i<it.qty;i++){
-          html += '<div class="item"><span class="col-md-6 col-sm-6 col-xs-12">'+it.nome+'</span>';
-          html += '<span class="col-md-2 col-sm-2 col-xs-4 text-right">'+it.preco.toFixed(2).replace('.',',')+'€</span>';
-          html += '<span class="col-md-2 col-sm-2 col-xs-4 text-right">'+it.taxa.toFixed(2).replace('.',',')+'€</span>';
-          html += '<span class="col-md-2 col-sm-2 col-xs-4 text-right">'+(it.preco+it.taxa).toFixed(2).replace('.',',')+'€</span></div>';
+          html += '<div class="item row"><span class="col-md-8 col-sm-8 col-xs-8">'+it.nome+'</span>';
+          html += '<span class="col-md-4 col-sm-4 col-xs-4 text-right">'+(it.preco+it.taxa).toFixed(2).replace('.',',')+'€</span></div>';
         }
       });
-      html += '</div><div class="rodape row-xs clearfix">';
-      html += '<div class="Preco clearfix"><span class="Texto col-md-10 col-sm-10 col-xs-8">Valor Bilhetes (IVA incluído)</span><span class="Valor col-md-2 col-sm-2 col-xs-4">'+cart.totalPreco.toFixed(2).replace('.',',')+'€</span></div>';
-      html += '<div class="Acrescimo clearfix"><span class="Texto col-md-10 col-sm-10 col-xs-8">Custos de Operação</span><span class="Valor col-md-2 col-sm-2 col-xs-4">'+cart.totalTaxa.toFixed(2).replace('.',',')+'€</span></div>';
-      html += '<div class="Total clearfix"><span class="Texto col-md-10 col-sm-10 col-xs-8">Total</span><span class="Valor col-md-2 col-sm-2 col-xs-4">'+cart.total.toFixed(2).replace('.',',')+'€</span></div>';
-      html += '</div></div>';
+      html += '<div class="rodape">';
+      html += '<div class="Acrescimo row"><span class="col-md-8 col-sm-8 col-xs-8">Custos de Operação</span><span class="col-md-4 col-sm-4 col-xs-4 text-right">'+cart.totalTaxa.toFixed(2).replace('.',',')+'€</span></div>';
+      html += '<div class="Total row"><span class="col-md-8 col-sm-8 col-xs-8">Total</span><span class="col-md-4 col-sm-4 col-xs-4 text-right">'+cart.total.toFixed(2).replace('.',',')+'€</span></div>';
+      html += '</div></div></div>';
       updBilhetes.innerHTML = html;
     }
 
