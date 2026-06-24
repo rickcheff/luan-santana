@@ -795,7 +795,7 @@ Sys.WebForms.PageRequestManager._initialize('ctl00$scriptManagerMasterPage', 'fo
 </div>
 <div class="row">
 <div class="col-xs-12 text-center" style="margin-top: 20px">
-<p id="Corpo_SeguroBilheteira_Paragrafo1_b" style="font-size: 14px">Por mais  <b>   1,85€</b> garantimos, em caso de não comparência no dia do evento, o <b style="text-transform: uppercase;">reembolso dos seus bilhetes</b>, devido a:
+<p id="Corpo_SeguroBilheteira_Paragrafo1_b" style="font-size: 14px">Por mais  <b>   9,90€</b> garantimos, em caso de não comparência no dia do evento, o <b style="text-transform: uppercase;">reembolso dos seus bilhetes</b>, devido a:
     </p>
 </div>
 </div>
@@ -844,7 +844,7 @@ Sys.WebForms.PageRequestManager._initialize('ctl00$scriptManagerMasterPage', 'fo
 </div>
 <div class="row">
 <div class="col-xs-12 text-center" style="margin-top: 20px">
-<p id="Corpo_SeguroBilheteira_Paragrafo1_a" style="font-size: 14px;">Por mais  <b>   1,85€</b> garantimos, em caso de não comparência no dia do evento, o <b style="text-transform: uppercase;">reembolso dos seus bilhetes</b>, devido a:
+<p id="Corpo_SeguroBilheteira_Paragrafo1_a" style="font-size: 14px;">Por mais  <b>   9,90€</b> garantimos, em caso de não comparência no dia do evento, o <b style="text-transform: uppercase;">reembolso dos seus bilhetes</b>, devido a:
     </p>
 </div>
 </div>
@@ -1468,34 +1468,118 @@ BOL.JS.Carrinho.Iniciar('timerCarrinhoMobile_Relogio','06/21/2026 19:35:41','06/
     </script>
 <script crossorigin="anonymous" data-cf-beacon='{"version":"2024.11.0","token":"adfee8d01ac8491995a9481088ae0496","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' defer="" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" src="../../../external/static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447"></script>
 <script>
+/* ---- SISTEMA CORRETO: Seguro + Navegacao ---- */
 (function(){
-  // Bloquear __doPostBack globalmente (evita POSTs que partem o site)
-  window.__doPostBack = function(target, arg){
-    // Permitir apenas o botao Seguinte — tudo o resto e ignorado
-    if(target === 'ctl00$Corpo$btnContinuar' || target === 'ctl00$Barra$btnContinuar2'){
-      window.location.href = '/Comprar/Pagamento/Dados/index.html';
-    }
-    // Qualquer outro __doPostBack (Seguro, confirmacao, etc.) e ignorado
-  };
+  var SEGURO_VALOR = 9.90;
+  var SEGURO_KEY = 'bolSeguroBilhete';
+  var TOTAL_KEY = 'bolCartTotalCalculado';
 
-  function init(){
-    // Botoes Seguinte
-    var btns = document.querySelectorAll('#Corpo_btnContinuar, #Barra_btnContinuar2, a.btn.continuar');
-    btns.forEach(function(b){
-      b.removeAttribute('href');
-      b.onclick = function(e){
-        e.preventDefault();
-        window.location.href = '/Comprar/Pagamento/Dados/index.html';
-      };
+  // NUNCA marcar automaticamente - apenas quando usuário marca ou clica ADICIONAR
+  function fecharTodosModais(){
+    ['.BOL-MODAL-AUTO', '.bolmodal.in', '#silktide-backdrop', '#silktide-wrapper'].forEach(function(sel){
+      var el = document.querySelector(sel);
+      if(el) el.style.display = 'none';
+    });
+  }
+
+  function atualizarBarra(){
+    var temSeguro = JSON.parse(sessionStorage.getItem(SEGURO_KEY) || 'false');
+    var tbody = document.querySelector('.TabelaTotal tbody');
+    if(!tbody) return;
+
+    var linhaSeguro = document.querySelector('tr.seguroLine');
+    if(temSeguro && !linhaSeguro){
+      var tr = document.createElement('tr');
+      tr.className = 'seguroLine';
+      tr.innerHTML = '<th class="Esquerda">Bilhete Seguro</th><th class="text-right">9,90€</th>';
+      tbody.appendChild(tr);
+    } else if(!temSeguro && linhaSeguro){
+      linhaSeguro.remove();
+    }
+  }
+
+  function obterTotalBase(){
+    var total = 0;
+    var thead = document.querySelector('.TabelaTotal thead th.text-right');
+    if(thead && thead.textContent.trim() !== '—'){
+      var txt = thead.textContent.trim().replace('€','').replace(',','.');
+      total = parseFloat(txt) || 0;
+    }
+    return total > 0 ? total : 40.00; // fallback
+  }
+
+  function obterCustos(){
+    var custos = 0;
+    var cell = document.querySelector('.custosOperacao th.text-right');
+    if(cell){
+      var txt = cell.textContent.trim().replace('€','').replace(',','.');
+      custos = parseFloat(txt) || 0;
+    }
+    return custos > 0 ? custos : 4.00; // fallback
+  }
+
+  function atualizarTotal(){
+    var totalBase = obterTotalBase();
+    var custos = obterCustos();
+    var temSeguro = JSON.parse(sessionStorage.getItem(SEGURO_KEY) || 'false');
+    var total = totalBase + custos + (temSeguro ? SEGURO_VALOR : 0);
+
+    sessionStorage.setItem(TOTAL_KEY, JSON.stringify(total));
+
+    document.querySelectorAll('.totalPagar th.text-right').forEach(function(el){
+      el.textContent = total.toFixed(2).replace('.',',') + '€';
     });
 
-    // Bilhete Seguro: remover onclick para funcionar so como checkbox visual
-    var cbx = document.getElementById('Corpo_cbxSeguroBilheteira');
-    if(cbx) cbx.removeAttribute('onclick');
+    atualizarBarra();
+  }
 
-    // Bloquear submit do formulario (evita POST acidental)
+  function init(){
+    // 1. Fechar TODOS os modais
+    fecharTodosModais();
+
+    // 2. Configurar checkbox - SEM marcar automaticamente
+    var cbx = document.getElementById('Corpo_cbxSeguroBilheteira');
+    if(cbx){
+      cbx.removeAttribute('onclick');
+      // NAO restaurar estado automaticamente - deixar desmarcado
+      cbx.checked = false;
+
+      cbx.addEventListener('change', function(){
+        sessionStorage.setItem(SEGURO_KEY, JSON.stringify(this.checked));
+        atualizarTotal();
+      });
+    }
+
+    // 3. Botão ADICIONAR do modal
+    var btnAdicionar = document.querySelector('button[onclick*="cbxSeguroBilheteira"]');
+    if(btnAdicionar){
+      btnAdicionar.onclick = function(e){
+        if(e) e.preventDefault();
+        if(cbx) cbx.click();
+        fecharTodosModais();
+        return false;
+      };
+    }
+
+    // 4. Botões Seguinte
+    ['Corpo_btnContinuar', 'Barra_btnContinuar2'].forEach(function(id){
+      var btn = document.getElementById(id);
+      if(btn){
+        btn.href = 'javascript:void(0)';
+        btn.onclick = function(e){
+          if(e && e.preventDefault) e.preventDefault();
+          document.location = '/Comprar/Pagamento/Dados/index.html';
+          return false;
+        };
+      }
+    });
+
+    // 5. Bloquear form
     var form = document.getElementById('form1');
-    if(form) form.addEventListener('submit', function(e){ e.preventDefault(); });
+    if(form) form.onsubmit = function(){ return false; };
+
+    // 6. Atualizar inicial
+    atualizarTotal();
   }
 
   if(document.readyState === 'loading'){
@@ -1503,7 +1587,6 @@ BOL.JS.Carrinho.Iniciar('timerCarrinhoMobile_Relogio','06/21/2026 19:35:41','06/
   } else { init(); }
 })();
 </script>
-
 <script>
 /* ---- Esconder elementos desnecessarios ---- */
 (function(){
@@ -1554,9 +1637,13 @@ BOL.JS.Carrinho.Iniciar('timerCarrinhoMobile_Relogio','06/21/2026 19:35:41','06/
 
     /* Actualizar sidebar totais */
     function fmtEur(v){ return v.toFixed(2).replace('.',',')+'€'; }
-    document.querySelectorAll('.totalPagar th.text-right').forEach(function(el){ el.textContent = fmtEur(cart.total); });
+    var temSeguro = JSON.parse(sessionStorage.getItem('bolSeguroBilhete') || 'false');
+    var totalFinal = cart.total + (temSeguro ? 9.90 : 0);
+    document.querySelectorAll('.totalPagar th.text-right').forEach(function(el){ el.textContent = fmtEur(totalFinal); });
     document.querySelectorAll('.TabelaTotal thead th.text-right').forEach(function(el){ el.textContent = fmtEur(cart.totalPreco); });
     document.querySelectorAll('.custosOperacao th.text-right').forEach(function(el){ el.textContent = fmtEur(cart.totalTaxa); });
+    // Regravar bolCartTotalCalculado com valores corretos do bolCart (substitui o cálculo sobre o DOM estático)
+    sessionStorage.setItem('bolCartTotalCalculado', JSON.stringify(totalFinal));
 
     /* Esconder mensagem "carrinho vazio" e conteudo estatico do festival antigo */
     var vazioMsg = document.querySelector('.mensagem.informacao.InfoCarrinho');

